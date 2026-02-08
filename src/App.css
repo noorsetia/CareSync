@@ -4556,9 +4556,9 @@ ul li:last-child {
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-700) 100%);
-  padding: var(--space-lg);
+  padding: var(--space-md);
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .login-page::before {
@@ -4586,17 +4586,20 @@ ul li:last-child {
 .login-container {
   background: white;
   border-radius: var(--radius-xl);
-  padding: var(--space-3xl);
+  padding: var(--space-2xl);
   box-shadow: var(--shadow-2xl);
   width: 100%;
   max-width: 450px;
   position: relative;
   z-index: 1;
+  margin: var(--space-lg) auto;
+  max-height: 95vh;
+  overflow-y: auto;
 }
 
 .login-header {
   text-align: center;
-  margin-bottom: var(--space-2xl);
+  margin-bottom: var(--space-lg);
 }
 
 .login-brand {
@@ -4642,13 +4645,13 @@ ul li:last-child {
   font-size: 0.95rem;
   color: var(--gray-600);
   text-align: center;
-  margin: 0 0 var(--space-xl);
+  margin: 0 0 var(--space-lg);
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
+  gap: var(--space-md);
 }
 
 .login-form .form-group {

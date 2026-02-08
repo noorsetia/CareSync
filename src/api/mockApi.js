@@ -5,26 +5,38 @@ function delay(ms) {
   return new Promise((res) => setTimeout(res, ms))
 }
 
-// Mock user database (in-memory). In real apps this would be server-side.
-const users = [
-  { id: 'u1', email: 'patient@example.com', password: 'password123', name: 'Alex Patient' },
-]
-
 export async function login({ email, password }) {
-  // Simulate network latency and a chance of transient error
+  // Simulate network latency
   await delay(600 + Math.random() * 400)
 
-  const found = users.find((u) => u.email.toLowerCase() === email.toLowerCase())
-  if (!found || found.password !== password) {
-    const err = new Error('Invalid email or password')
-    err.status = 401
+  // Basic validation - require email and password
+  if (!email || !password) {
+    const err = new Error('Email and password are required')
+    err.status = 400
     throw err
   }
 
+  // Accept any valid email format with any password
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email)) {
+    const err = new Error('Please enter a valid email address')
+    err.status = 400
+    throw err
+  }
+
+  // Extract name from email (before @)
+  const nameFromEmail = email.split('@')[0]
+    .split(/[._-]/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+
+  // Generate a unique user ID based on email
+  const userId = `u-${email.toLowerCase().replace(/[^a-z0-9]/g, '-')}`
+
   // Return a fake token and a minimal user object (omit sensitive fields)
   return {
-    token: `mock-token-${found.id}-${Date.now()}`,
-    user: { id: found.id, email: found.email, name: found.name },
+    token: `mock-token-${userId}-${Date.now()}`,
+    user: { id: userId, email: email.toLowerCase(), name: nameFromEmail || 'Patient' },
   }
 }
 

@@ -8,8 +8,8 @@ export default function Login() {
   const location = useLocation()
   const from = location.state?.from?.pathname
 
-  const [email, setEmail] = useState('patient@example.com')
-  const [password, setPassword] = useState('password123')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
 
   async function handleSubmit(e) {
@@ -39,38 +39,34 @@ export default function Login() {
       <form onSubmit={handleSubmit} className="login-form" aria-describedby={error ? 'login-error' : undefined}>
         <div className="form-group">
           <label htmlFor="email">Email Address</label>
-          <div className="input-with-icon">
-            <span className="input-icon">📧</span>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="patient@example.com"
-              autoComplete="email"
-              aria-label="Email address"
-            />
-          </div>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="patient@example.com"
+            autoComplete="email"
+            aria-label="Email address"
+            className="form-input"
+          />
         </div>
 
         <div className="form-group">
           <label htmlFor="password">Password</label>
-          <div className="input-with-icon">
-            <span className="input-icon">🔒</span>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              autoComplete="current-password"
-              aria-label="Password"
-            />
-          </div>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter your password"
+            autoComplete="current-password"
+            aria-label="Password"
+            className="form-input"
+          />
         </div>
 
         <div className="forgot-password-row">
@@ -106,9 +102,9 @@ export default function Login() {
 
         <div className="login-footer">
           <div className="demo-credentials">
-            <strong>🎯 Demo Credentials:</strong><br />
-            <span className="demo-item">📧 Email: patient@example.com</span><br />
-            <span className="demo-item">🔑 Password: password123</span>
+            <strong>💡 Login Information:</strong><br />
+            <span className="demo-item">✅ Use any valid email address</span><br />
+            <span className="demo-item">✅ Enter any password to sign in</span>
           </div>
         </div>
       </form>
