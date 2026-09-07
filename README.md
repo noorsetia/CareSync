@@ -1,176 +1,215 @@
-# Healthcare Patient Portal
+# 🏥 CareSync – Healthcare Patient Portal
 
-A production-grade healthcare patient portal built with modern React best practices.
+CareSync is a modern, production-oriented healthcare patient portal designed to provide patients with a secure and intuitive platform for managing their healthcare journey.
 
-## Tech Stack
+The portal allows patients to authenticate securely, access their dashboard, search for doctors, book and manage appointments, view medical records, and manage their profile.
 
-- **React 19** with Vite for fast development
-- **React Router v7** for declarative routing
-- **TanStack React Query v5** for server state management and caching
-- **Context API** for authentication state
-- Functional components only
-- Accessibility-first design (ARIA labels, semantic HTML, keyboard navigation)
+---
 
-## Features
+## 🚀 Tech Stack
 
-- ✅ Secure authentication flow with session persistence
-- ✅ Protected routes with automatic redirect
-- ✅ Mock API with simulated network latency
-- ✅ React Query data fetching with retry logic
-- ✅ Accessible forms and navigation
-- ✅ Professional, healthcare-appropriate UI
-- ✅ ESLint with React Fast Refresh rules
-- ✅ Clean, beginner-friendly code structure
+### Frontend
 
-## Project Structure
+- **React 19** – Component-based UI development
+- **Vite** – Fast development and optimized production builds
+- **React Router v7** – Client-side routing and protected routes
+- **TanStack React Query v5** – Server-state management, caching, retries, and data synchronization
+- **Context API** – Global authentication state management
+- **JavaScript (ES6+)**
+- **HTML5**
+- **CSS3**
 
-**Scalable folder structure for production applications.** See [FOLDER_GUIDE.md](./FOLDER_GUIDE.md) for detailed explanations.
+### Development & Code Quality
 
-```
+- ESLint
+- React Fast Refresh
+- Functional React Components
+- Custom React Hooks
+- Responsive UI
+- Accessibility-focused development
+
+---
+
+## ✨ Key Features
+
+### 🔐 Authentication
+
+- Patient registration
+- Patient login
+- Persistent authentication session
+- Protected dashboard routes
+- Automatic redirect for unauthenticated users
+- Logout functionality
+- Password visibility controls
+- Form validation
+- Google authentication support
+
+> For production deployment, authentication should use secure httpOnly cookies and refresh-token based sessions.
+
+---
+
+### 📊 Patient Dashboard
+
+The dashboard provides patients with a centralized overview of their healthcare activity.
+
+Features include:
+
+- Patient profile summary
+- Upcoming appointments
+- Appointment information
+- Quick access to healthcare services
+- Notification controls
+- Navigation to appointments, doctors, medical records, and profile settings
+
+---
+
+### 👨‍⚕️ Doctor Search
+
+Patients can search and filter available doctors using:
+
+- Doctor name
+- Medical specialty
+- Location
+- Availability
+- Consultation fee
+- Minimum rating
+
+Additional functionality:
+
+- Recommended doctor sorting
+- Doctor rating information
+- Clinic/location information
+- Doctor specialty information
+
+---
+
+### 📅 Appointment Management
+
+Patients can manage their appointments from a dedicated appointments dashboard.
+
+Supported functionality includes:
+
+- Book new appointments
+- View upcoming appointments
+- View past appointments
+- View all appointments
+- Appointment details
+- Doctor information
+- Specialty
+- Date and time
+- Clinic/location
+- Appointment type
+- Appointment notes
+- Reschedule appointments
+- Cancel appointments
+- Booking confirmation feedback
+
+---
+
+### 🏥 Medical Records
+
+The portal provides a dedicated area for managing patient medical information.
+
+Medical records can include:
+
+- Medical history
+- Prescriptions
+- Consultation information
+- Previous healthcare records
+- Treatment information
+
+---
+
+### 👤 Profile & Settings
+
+Patients can manage their account information through the profile section.
+
+The profile area is designed to provide access to:
+
+- Patient information
+- Account settings
+- Profile details
+- Authentication-related settings
+
+---
+
+## 🎨 UI/UX
+
+CareSync follows a professional healthcare-focused visual design.
+
+### Design Principles
+
+- Clean and modern interface
+- Healthcare-appropriate visual language
+- Consistent spacing and typography
+- Clear visual hierarchy
+- Responsive layouts
+- Accessible form controls
+- Clear success and error states
+- Reusable UI components
+- Consistent buttons, cards, inputs, and modals
+
+The application uses a combination of healthcare-oriented colors with a modern purple/blue interface to provide a trustworthy yet contemporary experience.
+
+---
+
+# 📁 Project Structure
+
+The project follows a scalable structure designed to keep UI, business logic, API logic, and reusable components separated.
+
+```text
 src/
-├── api/                       # API layer & React Query logic
-│   ├── queries/              # React Query hooks for GET requests
-│   ├── mutations/            # React Query hooks for POST/PUT/DELETE
-│   └── mockApi.js            # Mock endpoints for development
 │
-├── components/               # Reusable UI components
-│   ├── common/              # Generic components (Button, Card, Modal)
-│   ├── appointments/        # Appointment-specific components
-│   └── records/             # Medical records components
+├── api/
+│   ├── queries/
+│   │   └── React Query GET hooks
+│   │
+│   ├── mutations/
+│   │   └── React Query POST/PUT/DELETE hooks
+│   │
+│   └── mockApi.js
 │
-├── context/                  # Global state (Context API)
-│   ├── authContextCore.js   # Auth context object
-│   ├── AuthContext.jsx      # Auth provider
-│   └── useAuth.js           # Auth hook
+├── components/
+│   ├── common/
+│   │   ├── Button
+│   │   ├── Card
+│   │   ├── Modal
+│   │   └── other reusable components
+│   │
+│   ├── appointments/
+│   │   └── Appointment-related components
+│   │
+│   ├── doctors/
+│   │   └── Doctor search and filtering components
+│   │
+│   └── records/
+│       └── Medical record components
 │
-├── hooks/                    # Custom React hooks
-│   ├── useDebounce.js       # Debounce hook for search
-│   └── useLocalStorage.js   # Sync state with localStorage
+├── context/
+│   ├── authContextCore.js
+│   ├── AuthContext.jsx
+│   └── useAuth.js
 │
-├── layouts/                  # Page layout wrappers
-│   └── DashboardLayout.jsx  # Dashboard with sidebar nav
+├── hooks/
+│   ├── useDebounce.js
+│   └── useLocalStorage.js
 │
-├── pages/                    # Route-level components
-│   ├── LoginPage.jsx        # /login
-│   ├── DashboardPage.jsx    # /dashboard
-│   └── AppointmentsPage.jsx # /dashboard/appointments
+├── layouts/
+│   └── DashboardLayout.jsx
 │
-├── utils/                    # Pure helper functions
-│   ├── formatters.js        # Format dates, times, phone
-│   └── validators.js        # Input validation
+├── pages/
+│   ├── LoginPage.jsx
+│   ├── RegisterPage.jsx
+│   ├── DashboardPage.jsx
+│   ├── AppointmentsPage.jsx
+│   ├── FindDoctorsPage.jsx
+│   ├── MedicalRecordsPage.jsx
+│   └── ProfilePage.jsx
 │
-├── App.jsx                   # Main app with routes
-├── main.jsx                  # Entry point with providers
-└── App.css                   # Global styles
-```
-
-**📚 Documentation:**
-- [FOLDER_GUIDE.md](./FOLDER_GUIDE.md) - Detailed folder responsibilities
-- [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) - Visual diagrams and patterns
-- [FOLDER_STRUCTURE.md](./FOLDER_STRUCTURE.md) - Complete architecture guide
-
-## Getting Started
-
-### Install Dependencies
-
-```bash
-npm install
-```
-
-### Run Development Server
-
-```bash
-npm run dev
-```
-
-The app will be available at `http://localhost:5173` (or next available port).
-
-### Demo Credentials
-
-- **Email:** `patient@example.com`
-- **Password:** `password123`
-
-## Development
-
-### Linting
-
-```bash
-npm run lint
-```
-
-### Build for Production
-
-```bash
-npm run build
-```
-
-### Preview Production Build
-
-```bash
-npm run preview
-```
-
-## Code Quality & Best Practices
-
-- ✅ **Controlled components** for all form inputs
-- ✅ **Semantic HTML** (section, article, nav, etc.)
-- ✅ **Small, focused components** following single responsibility
-- ✅ **Clear comments** explaining WHY, not just WHAT
-- ✅ **Accessibility-first** with ARIA attributes and keyboard support
-- ✅ **No class components** - functional components only
-- ✅ **ESLint compliance** with React hooks and fast refresh rules
-
-## Architecture Decisions
-
-### Authentication
-
-- Uses Context API for global auth state
-- Session persisted in `localStorage` for demo purposes
-- In production, use httpOnly cookies and refresh tokens
-
-### Data Fetching
-
-- React Query handles caching, retries, and background refetching
-- Conservative retry strategy (1 retry) appropriate for healthcare
-- Short stale time (1 minute) to balance UX and data freshness
-
-### Routing
-
-- React Router v7 with protected route pattern
-- Preserves attempted destination in location state for post-login redirect
-- Centralized navigation logic in AuthProvider
-
-## Next Steps (Production Readiness)
-
-1. **Testing**
-   - Add unit tests (Vitest + React Testing Library)
-   - Add E2E tests (Playwright)
-   - Test accessibility with axe-core
-
-2. **Security**
-   - Replace localStorage with httpOnly cookies
-   - Add CSRF protection
-   - Implement proper token refresh flow
-   - Add rate limiting
-
-3. **UX Enhancements**
-   - Add loading skeletons
-   - Add error boundaries
-   - Add toast notifications
-   - Add form validation with detailed feedback
-
-4. **Design System**
-   - Extract design tokens to CSS variables
-   - Add dark mode support
-   - Create component library
-   - Add responsive breakpoints
-
-5. **Performance**
-   - Add code splitting
-   - Optimize bundle size
-   - Add service worker for offline support
-   - Implement virtualization for large lists
-
-## License
-
-MIT
+├── utils/
+│   ├── formatters.js
+│   └── validators.js
+│
+├── App.jsx
+├── main.jsx
+└── App.css
