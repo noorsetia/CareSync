@@ -1,19 +1,19 @@
 import { useState } from 'react'
 import { useAuth } from '../context/useAuth'
+import { useNotifications } from '../context/NotificationContext'
 
-/**
- * ProfilePage - User Profile view with edit functionality
- */
 export default function ProfilePage() {
   const { user } = useAuth()
+  const { addNotification } = useNotifications()
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [patientId] = useState(() => `PT-${Math.random().toString(36).substr(2, 9).toUpperCase()}`)
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false)
+  const [patientId] = useState(() => `PT-${Math.random().toString(36).substr(2, 7).toUpperCase()}`)
   
-  // Profile data state
+  // Profile data state with safe fallbacks
   const [profileData, setProfileData] = useState({
     name: user?.name || 'Alex Patient',
-    email: user?.email || 'patient@example.com',
+    email: user?.email || 'patient@caresync.com',
     phone: '+1 (555) 123-4567',
     dateOfBirth: '1990-05-15',
     gender: 'Male',
@@ -43,28 +43,39 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     setSaving(true)
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    addNotification({
+      type: 'profile',
+      icon: '👤',
+      iconClass: 'indigo',
+      title: 'Profile Updated',
+      description: 'Your personal information and health profile details were updated.',
+      category: 'Reminders',
+      time: 'Just now',
+      link: '/dashboard/profile',
+    })
     setSaving(false)
     setIsEditing(false)
-    
-    alert('✅ Profile updated successfully!\n\nYour changes have been saved.')
   }
 
   const handleCancel = () => {
-    // Reset to original values (in real app, would reload from server)
     setIsEditing(false)
   }
 
-  const handlePrivacySettings = () => {
-    alert('🔒 Privacy Settings\n\nManage your privacy preferences:\n• Data sharing settings\n• Communication preferences\n• Account security\n• Connected apps')
+  const formatDateString = (dateStr) => {
+    if (!dateStr) return 'N/A'
+    try {
+      const parsed = new Date(dateStr)
+      if (isNaN(parsed.getTime())) return dateStr
+      return parsed.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    } catch {
+      return dateStr
+    }
   }
 
   return (
     <section aria-labelledby="profile-heading">
-      {/* Page Header with Actions */}
+      {/* Page Header */}
       <div className="page-header-bar">
         <div className="page-header-left">
           <h1 id="profile-heading" className="page-main-title">My Profile</h1>
@@ -73,7 +84,7 @@ export default function ProfilePage() {
         <div className="page-header-actions">
           <button 
             className="btn-secondary-action"
-            onClick={handlePrivacySettings}
+            onClick={() => setShowPrivacyModal(true)}
           >
             <span className="btn-icon">🔒</span>
             <span className="btn-text">Privacy Settings</span>
@@ -95,7 +106,7 @@ export default function ProfilePage() {
         <div className="profile-header-card">
           <div className="profile-avatar">
             <div className="avatar-circle">
-              {profileData.name.charAt(0).toUpperCase()}
+              {(profileData.name || 'P').charAt(0).toUpperCase()}
             </div>
             {isEditing && (
               <button className="avatar-upload-btn" title="Change photo">
@@ -108,12 +119,12 @@ export default function ProfilePage() {
             <p className="profile-email">{profileData.email}</p>
             <div className="profile-badges">
               <span className="badge badge-primary">Patient ID: {patientId}</span>
-              <span className="badge badge-success">Verified ✓</span>
+              <span className="badge badge-success">Verified Patient ✓</span>
             </div>
           </div>
         </div>
 
-        {/* Personal Information Section */}
+        {/* Personal Information */}
         <div className="profile-section">
           <div className="section-header">
             <h3>👤 Personal Information</h3>
@@ -175,7 +186,7 @@ export default function ProfilePage() {
                   disabled={saving}
                 />
               ) : (
-                <span className="field-value">{new Date(profileData.dateOfBirth).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                <span className="field-value">{formatDateString(profileData.dateOfBirth)}</span>
               )}
             </div>
 
@@ -261,10 +272,10 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Address Information */}
+        {/* Address */}
         <div className="profile-section">
           <div className="section-header">
-            <h3>📍 Address</h3>
+            <h3>📍 Address Information</h3>
           </div>
           <div className="profile-grid">
             <div className="profile-field field-full">
@@ -382,63 +393,10 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Medical Information */}
+        {/* Medical & Insurance */}
         <div className="profile-section">
           <div className="section-header">
-            <h3>🏥 Medical Information</h3>
-          </div>
-          <div className="profile-grid">
-            <div className="profile-field field-full">
-              <label className="field-label">Allergies:</label>
-              {isEditing ? (
-                <textarea
-                  className="field-textarea"
-                  value={profileData.allergies}
-                  onChange={(e) => handleInputChange('allergies', e.target.value)}
-                  disabled={saving}
-                  rows="2"
-                />
-              ) : (
-                <span className="field-value">{profileData.allergies}</span>
-              )}
-            </div>
-
-            <div className="profile-field field-full">
-              <label className="field-label">Current Medications:</label>
-              {isEditing ? (
-                <textarea
-                  className="field-textarea"
-                  value={profileData.medications}
-                  onChange={(e) => handleInputChange('medications', e.target.value)}
-                  disabled={saving}
-                  rows="2"
-                />
-              ) : (
-                <span className="field-value">{profileData.medications}</span>
-              )}
-            </div>
-
-            <div className="profile-field field-full">
-              <label className="field-label">Chronic Conditions:</label>
-              {isEditing ? (
-                <textarea
-                  className="field-textarea"
-                  value={profileData.conditions}
-                  onChange={(e) => handleInputChange('conditions', e.target.value)}
-                  disabled={saving}
-                  rows="2"
-                />
-              ) : (
-                <span className="field-value">{profileData.conditions}</span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Insurance Information */}
-        <div className="profile-section">
-          <div className="section-header">
-            <h3>🛡️ Insurance Information</h3>
+            <h3>🛡️ Insurance & Medical History</h3>
           </div>
           <div className="profile-grid">
             <div className={`profile-field ${isEditing ? 'editing' : ''}`}>
@@ -473,26 +431,119 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Edit Mode Actions */}
+        {/* Edit Actions */}
         {isEditing && (
           <div className="profile-actions">
             <button 
-              className="btn-cancel"
+              className="btn-secondary"
               onClick={handleCancel}
               disabled={saving}
             >
               Cancel
             </button>
             <button 
-              className="btn-save"
+              className="btn-primary"
               onClick={handleSave}
               disabled={saving}
             >
-              {saving ? '💾 Saving...' : '💾 Save Changes'}
+              {saving ? '💾 Saving...' : '💾 Save Profile Changes'}
             </button>
           </div>
         )}
       </div>
+
+      {/* Privacy & Security Modal */}
+      {showPrivacyModal && (
+        <div className="modal-overlay" onClick={() => setShowPrivacyModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <span style={{ fontSize: '1.4rem' }}>🛡️</span>
+                <h2>Privacy & Security</h2>
+              </div>
+              <button 
+                className="modal-close" 
+                onClick={() => setShowPrivacyModal(false)}
+                aria-label="Close modal"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p className="modal-description" style={{ color: 'var(--gray-600)', marginBottom: '1.25rem' }}>
+                Manage your privacy preferences, record sharing, and security configuration for your CareSync experience.
+              </p>
+
+              <div className="privacy-sections-container" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {/* Section 1: Medical Data Privacy */}
+                <div className="privacy-section-card" style={{
+                  background: 'var(--gray-50)',
+                  border: '1px solid var(--gray-200)',
+                  borderRadius: '12px',
+                  padding: '1.1rem 1.25rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.4rem' }}>
+                    <span style={{ fontSize: '1.2rem' }}>🏥</span>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--gray-900)', fontWeight: 600 }}>
+                      Medical Data Privacy
+                    </h3>
+                  </div>
+                  <p style={{ margin: 0, color: 'var(--gray-600)', fontSize: '0.925rem', lineHeight: '1.5' }}>
+                    Your health information is handled within your CareSync account experience.
+                  </p>
+                </div>
+
+                {/* Section 2: Record Access */}
+                <div className="privacy-section-card" style={{
+                  background: 'var(--gray-50)',
+                  border: '1px solid var(--gray-200)',
+                  borderRadius: '12px',
+                  padding: '1.1rem 1.25rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.4rem' }}>
+                    <span style={{ fontSize: '1.2rem' }}>📑</span>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--gray-900)', fontWeight: 600 }}>
+                      Record Access
+                    </h3>
+                  </div>
+                  <p style={{ margin: 0, color: 'var(--gray-600)', fontSize: '0.925rem', lineHeight: '1.5' }}>
+                    You control access to your profile and medical records.
+                  </p>
+                </div>
+
+                {/* Section 3: Account Security */}
+                <div className="privacy-section-card" style={{
+                  background: 'var(--gray-50)',
+                  border: '1px solid var(--gray-200)',
+                  borderRadius: '12px',
+                  padding: '1.1rem 1.25rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.4rem' }}>
+                    <span style={{ fontSize: '1.2rem' }}>🔒</span>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--gray-900)', fontWeight: 600 }}>
+                      Account Security
+                    </h3>
+                  </div>
+                  <p style={{ margin: 0, color: 'var(--gray-600)', fontSize: '0.925rem', lineHeight: '1.5' }}>
+                    Review your account activity and security preferences regularly.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                className="btn-primary"
+                onClick={() => setShowPrivacyModal(false)}
+                style={{ width: '100%', minWidth: '120px' }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }

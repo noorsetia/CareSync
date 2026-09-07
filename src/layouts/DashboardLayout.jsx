@@ -1,43 +1,39 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
+import { useNotifications } from '../context/NotificationContext'
 import { useState } from 'react'
 
-/**
- * DashboardLayout - Modern SaaS-style layout with left sidebar
- * 
- * Purpose:
- * - Provides consistent sidebar navigation across dashboard pages
- * - Shows user info and logout control
- * - Wraps child routes with <Outlet />
- * - Feels like a real healthcare product
- * 
- * Used by: All /dashboard/* routes
- */
 export default function DashboardLayout() {
   const { user, logout } = useAuth()
+  const { unreadCount } = useNotifications()
   const location = useLocation()
   const navigate = useNavigate()
-  const [showNotifications, setShowNotifications] = useState(false)
-  const [showHelp, setShowHelp] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
+  const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen)
+  const closeMobileMenu = () => setMobileMenuOpen(false)
+
   const handleNotifications = () => {
-    setShowNotifications(!showNotifications)
+    closeMobileMenu()
+    navigate('/dashboard/notifications')
   }
 
   const handleHelp = () => {
-    setShowHelp(!showHelp)
+    closeMobileMenu()
+    navigate('/dashboard/support')
   }
 
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen)
+  const isActive = (path) => {
+    if (path === '/dashboard') return location.pathname === '/dashboard'
+    return location.pathname.startsWith(path)
   }
 
-  const closeMobileMenu = () => {
-    setMobileMenuOpen(false)
+  const getInitials = (name) => {
+    if (!name) return 'PT'
+    const parts = name.split(' ')
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+    return name.substring(0, 2).toUpperCase()
   }
-
-  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/')
 
   return (
     <div className="dashboard-layout">
@@ -45,13 +41,17 @@ export default function DashboardLayout() {
       <button 
         className="mobile-menu-toggle" 
         onClick={toggleMobileMenu}
-        aria-label="Toggle menu"
+        aria-label="Toggle navigation menu"
         aria-expanded={mobileMenuOpen}
       >
-        <span className="menu-icon">{mobileMenuOpen ? '✕' : '☰'}</span>
+        {mobileMenuOpen ? (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        ) : (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        )}
       </button>
 
-      {/* Mobile Overlay */}
+      {/* Mobile Backdrop */}
       {mobileMenuOpen && (
         <div 
           className="mobile-overlay" 
@@ -62,40 +62,51 @@ export default function DashboardLayout() {
 
       {/* Left Sidebar */}
       <aside className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`} role="navigation" aria-label="Main navigation">
-        {/* Mobile Close Button */}
         <button 
           className="sidebar-close-btn" 
           onClick={closeMobileMenu}
-          aria-label="Close menu"
+          aria-label="Close sidebar"
         >
-          <span className="close-icon">✕</span>
+          ✕
         </button>
 
-        {/* Logo & Branding - CaresSync */}
+        {/* Brand Header */}
         <div className="sidebar-brand">
-          <span className="brand-icon" aria-hidden="true">🏥</span>
+          <div className="brand-logo-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+              <path d="M12 5v14"/>
+              <path d="M5 12h14"/>
+            </svg>
+          </div>
           <div className="brand-text">
-            <h1 className="brand-name">CaresSync</h1>
-            <span className="brand-tagline">Healthcare Portal</span>
+            <h1 className="brand-name">CareSync</h1>
+            <span className="brand-tagline">Health Portal</span>
           </div>
         </div>
 
-        {/* User Profile Section */}
+        {/* User Card */}
         <div className="sidebar-user">
-          <div className="user-avatar">
-            {user?.name?.charAt(0) || 'U'}
+          <div className="user-avatar-ring">
+            <div className="user-avatar-text">
+              {getInitials(user?.name)}
+            </div>
           </div>
           <div className="user-info">
-            <h3>{user?.name}</h3>
-            <p>{user?.email}</p>
+            <h3 className="user-name">{user?.name || 'Patient'}</h3>
+            <p className="user-email">{user?.email || 'patient@caresync.com'}</p>
+            <span className="verified-patient-badge">Verified Patient</span>
           </div>
         </div>
 
-        {/* Quick Action CTA */}
+        {/* Action Button */}
         <div className="sidebar-cta">
           <Link to="/dashboard/book" className="cta-button" onClick={closeMobileMenu}>
-            <span className="cta-icon">➕</span>
-            <span className="cta-text">Book Appointment</span>
+            <svg className="cta-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            <span className="cta-text">
+              <span className="cta-text-line">Book</span>
+              <span className="cta-text-line">Appointment</span>
+            </span>
           </Link>
         </div>
 
@@ -105,14 +116,15 @@ export default function DashboardLayout() {
             <li role="none">
               <Link 
                 to="/dashboard" 
-                className={`nav-link ${isActive('/dashboard') && location.pathname === '/dashboard' ? 'active' : ''}`}
+                className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}
                 role="menuitem"
                 onClick={closeMobileMenu}
               >
-                <span className="nav-icon" aria-hidden="true">📊</span>
+                <svg className="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
                 <span className="nav-text">Dashboard</span>
               </Link>
             </li>
+
             <li role="none">
               <Link 
                 to="/dashboard/appointments" 
@@ -120,10 +132,23 @@ export default function DashboardLayout() {
                 role="menuitem"
                 onClick={closeMobileMenu}
               >
-                <span className="nav-icon" aria-hidden="true">📅</span>
+                <svg className="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="m9 16 2 2 4-4"/></svg>
                 <span className="nav-text">Appointments</span>
               </Link>
             </li>
+
+            <li role="none">
+              <Link 
+                to="/dashboard/search" 
+                className={`nav-link ${isActive('/dashboard/search') ? 'active' : ''}`}
+                role="menuitem"
+                onClick={closeMobileMenu}
+              >
+                <svg className="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M11 8v6M8 11h6"/></svg>
+                <span className="nav-text">Find Doctors</span>
+              </Link>
+            </li>
+
             <li role="none">
               <Link 
                 to="/dashboard/records" 
@@ -131,10 +156,11 @@ export default function DashboardLayout() {
                 role="menuitem"
                 onClick={closeMobileMenu}
               >
-                <span className="nav-icon" aria-hidden="true">📋</span>
+                <svg className="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                 <span className="nav-text">Medical Records</span>
               </Link>
             </li>
+
             <li role="none">
               <Link 
                 to="/dashboard/profile" 
@@ -142,17 +168,17 @@ export default function DashboardLayout() {
                 role="menuitem"
                 onClick={closeMobileMenu}
               >
-                <span className="nav-icon" aria-hidden="true">👤</span>
-                <span className="nav-text">Profile</span>
+                <svg className="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span className="nav-text">Profile & Settings</span>
               </Link>
             </li>
           </ul>
         </nav>
 
-        {/* Logout Button */}
+        {/* Footer Logout */}
         <div className="sidebar-footer">
           <button onClick={() => { logout(); closeMobileMenu(); }} className="sidebar-logout-btn" aria-label="Sign out">
-            <span className="nav-icon" aria-hidden="true">🚪</span>
+            <svg className="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             <span className="nav-text">Sign Out</span>
           </button>
         </div>
@@ -160,100 +186,65 @@ export default function DashboardLayout() {
 
       {/* Main Content Area */}
       <main className="dashboard-main">
-        {/* Top Bar (optional - for breadcrumbs, search, notifications) */}
-        <div className="dashboard-topbar">
+        {/* Top Header Bar */}
+        <header className="dashboard-topbar">
           <div className="topbar-left">
-            <h2 className="page-title">
-              {location.pathname === '/dashboard' && 'Dashboard'}
-              {location.pathname === '/dashboard/search' && 'Find Doctors'}
-              {location.pathname === '/dashboard/book' && 'Book Appointment'}
-              {location.pathname === '/dashboard/appointments' && 'Appointments'}
-              {location.pathname === '/dashboard/records' && 'Medical Records'}
-              {location.pathname === '/dashboard/profile' && 'Profile'}
+            <h2 className="topbar-page-title">
+              {location.pathname === '/dashboard' && 'Patient Overview'}
+              {location.pathname === '/dashboard/search' && 'Find Doctors & Specialists'}
+              {location.pathname === '/dashboard/book' && 'Book New Appointment'}
+              {location.pathname === '/dashboard/appointments' && 'My Appointments'}
+              {location.pathname === '/dashboard/records' && 'Medical Records & Labs'}
+              {location.pathname === '/dashboard/profile' && 'Patient Profile & Settings'}
+              {location.pathname === '/dashboard/notifications' && 'Notifications'}
+              {location.pathname === '/dashboard/support' && 'CareSync Support'}
             </h2>
           </div>
-          <div className="topbar-right">
-            <button 
-              className="topbar-icon-btn" 
-              aria-label="Notifications"
-              onClick={handleNotifications}
+
+<div className="topbar-center">
+            <button
+              className="topbar-search-btn"
+              onClick={() => navigate('/dashboard/search')}
+              title="Search doctors or specialties"
             >
-              🔔
-              {showNotifications && (
-                <div className="notification-dropdown">
-                  <div className="dropdown-header">
-                    <h3>Notifications</h3>
-                    <span className="notification-badge">3</span>
-                  </div>
-                  <div className="notification-list">
-                    <div className="notification-item">
-                      <span className="notification-icon">📅</span>
-                      <div className="notification-content">
-                        <p className="notification-text">Upcoming appointment with Dr. Sarah Johnson</p>
-                        <span className="notification-time">Tomorrow at 10:00 AM</span>
-                      </div>
-                    </div>
-                    <div className="notification-item">
-                      <span className="notification-icon">📋</span>
-                      <div className="notification-content">
-                        <p className="notification-text">New lab results available</p>
-                        <span className="notification-time">2 hours ago</span>
-                      </div>
-                    </div>
-                    <div className="notification-item">
-                      <span className="notification-icon">💊</span>
-                      <div className="notification-content">
-                        <p className="notification-text">Prescription refill reminder</p>
-                        <span className="notification-time">1 day ago</span>
-                      </div>
-                    </div>
-                  </div>
-                  <button 
-                    className="view-all-btn"
-                    onClick={() => {
-                      setShowNotifications(false)
-                      navigate('/dashboard/appointments')
-                    }}
-                  >
-                    View All
-                  </button>
-                </div>
-              )}
-            </button>
-            <button 
-              className="topbar-icon-btn" 
-              aria-label="Help"
-              onClick={handleHelp}
-            >
-              ❓
-              {showHelp && (
-                <div className="help-dropdown">
-                  <div className="dropdown-header">
-                    <h3>Help & Support</h3>
-                  </div>
-                  <div className="help-list">
-                    <button className="help-item" onClick={() => alert('📖 User Guide\n\nLearn how to use HealthPortal features:\n• Book appointments\n• View medical records\n• Manage prescriptions\n• Contact doctors')}>
-                      <span className="help-icon">📖</span>
-                      <span>User Guide</span>
-                    </button>
-                    <button className="help-item" onClick={() => alert('💬 Contact Support\n\nGet help from our team:\n📧 Email: support@healthportal.com\n📞 Phone: 1-800-HEALTH\n⏰ Hours: 24/7')}>
-                      <span className="help-icon">💬</span>
-                      <span>Contact Support</span>
-                    </button>
-                    <button className="help-item" onClick={() => alert('❓ FAQs\n\nCommon questions:\n• How do I book an appointment?\n• Where can I view my medical records?\n• How do I update my profile?\n• What payment methods are accepted?')}>
-                      <span className="help-icon">❓</span>
-                      <span>FAQs</span>
-                    </button>
-                    <button className="help-item" onClick={() => alert('🔒 Privacy & Security\n\nYour data is protected:\n• HIPAA compliant\n• Encrypted storage\n• Secure communication\n• Regular security audits')}>
-                      <span className="help-icon">🔒</span>
-                      <span>Privacy & Security</span>
-                    </button>
-                  </div>
-                </div>
-              )}
+              <svg className="topbar-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <span className="topbar-search-text">Search doctors...</span>
             </button>
           </div>
-        </div>
+
+          <div className="topbar-actions">
+            {/* Notification Bell */}
+            <div className="topbar-dropdown-wrapper">
+              <button
+                className={`topbar-icon-btn ${location.pathname === '/dashboard/notifications' ? 'active' : ''}`}
+                aria-label="Open notifications"
+                title="Notifications"
+                onClick={handleNotifications}
+              >
+                <svg className="topbar-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                {unreadCount > 0 ? (
+                  <span className="notification-count-badge" aria-label={`${unreadCount} unread notifications`}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                ) : (
+                  <span className="notification-dot" style={{ display: 'none' }}></span>
+                )}
+              </button>
+            </div>
+
+            {/* Help / CareSync Support Button */}
+            <div className="topbar-dropdown-wrapper">
+              <button
+                className={`topbar-icon-btn ${location.pathname === '/dashboard/support' ? 'active' : ''}`}
+                aria-label="Open CareSync Support"
+                title="CareSync Support"
+                onClick={handleHelp}
+              >
+                <svg className="topbar-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </button>
+            </div>
+          </div>
+        </header>
 
         {/* Page Content */}
         <div className="dashboard-content">

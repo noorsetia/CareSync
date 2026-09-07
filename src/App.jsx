@@ -7,6 +7,8 @@ import DashboardPage from './pages/DashboardPage'
 import AppointmentsPage from './pages/AppointmentsPage'
 import RecordsPage from './pages/RecordsPage'
 import ProfilePage from './pages/ProfilePage'
+import NotificationsPage from './pages/NotificationsPage'
+import SupportPage from './pages/SupportPage'
 import DashboardLayout from './layouts/DashboardLayout'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import { useAuth } from './context/useAuth'
@@ -38,6 +40,8 @@ function App() {
           <Route path="appointments" element={<AppointmentsPage />} />
           <Route path="records" element={<RecordsPage />} />
           <Route path="profile" element={<ProfilePage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="support" element={<SupportPage />} />
           
           {/* Lazy loaded routes with Suspense */}
           <Route 

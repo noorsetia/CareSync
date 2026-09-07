@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../context/useAuth'
+import { useNotifications } from '../context/NotificationContext'
 import { fetchAppointments } from '../api/mockApi'
 import AppointmentCard from '../components/appointments/AppointmentCard'
 
@@ -18,13 +19,18 @@ export default function AppointmentsPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { token } = useAuth()
+  const { addNotification } = useNotifications()
   const [filter, setFilter] = useState('upcoming')
   const [showRescheduleModal, setShowRescheduleModal] = useState(false)
+  const [showCancelModal, setShowCancelModal] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState(null)
+  const [appointmentToCancel, setAppointmentToCancel] = useState(null)
   const [newDate, setNewDate] = useState('')
   const [newTime, setNewTime] = useState('')
   const [rescheduling, setRescheduling] = useState(false)
   const [rescheduledAppointments, setRescheduledAppointments] = useState({})
+  const [cancelledAppointmentIds, setCancelledAppointmentIds] = useState([])
+  const [cancellationSuccessMsg, setCancellationSuccessMsg] = useState('')
   
   const { data: appointments, isLoading, error } = useQuery({
     queryKey: ['appointments', { status: filter }],
@@ -33,22 +39,56 @@ export default function AppointmentsPage() {
     staleTime: 3 * 60 * 1000, // 3 minutes cache,
   })
 
-  // Merge rescheduled data with original appointments
-  const displayAppointments = appointments?.map(apt => {
-    if (rescheduledAppointments[apt.id]) {
-      return { ...apt, ...rescheduledAppointments[apt.id] }
-    }
-    return apt
-  })
+  // Merge rescheduled and cancelled data with original appointments
+  const displayAppointments = appointments
+    ?.map(apt => {
+      let updated = { ...apt }
+      if (rescheduledAppointments[apt.id]) {
+        updated = { ...updated, ...rescheduledAppointments[apt.id] }
+      }
+      if (cancelledAppointmentIds.includes(apt.id)) {
+        updated = { ...updated, status: 'cancelled' }
+      }
+      return updated
+    })
+    ?.filter(apt => {
+      if (filter === 'upcoming') {
+        return apt.status === 'upcoming'
+      }
+      if (filter === 'past') {
+        return apt.status === 'completed'
+      }
+      return true
+    })
 
   const handleCancel = (appointmentId) => {
-    // Implementation would call mutation hook
-    console.log('Cancel appointment:', appointmentId)
-    alert('Cancel functionality would be implemented here')
+    const appointment = displayAppointments?.find(apt => apt.id === appointmentId)
+    if (appointment) {
+      setAppointmentToCancel(appointment)
+      setShowCancelModal(true)
+    }
+  }
+
+  const handleConfirmCancel = () => {
+    if (appointmentToCancel) {
+      setCancelledAppointmentIds(prev => [...prev, appointmentToCancel.id])
+      setCancellationSuccessMsg('Appointment cancelled successfully.')
+      addNotification({
+        type: 'appointment',
+        icon: '🚫',
+        iconClass: 'rose',
+        title: 'Appointment Cancelled',
+        description: `Your appointment with ${appointmentToCancel.doctorName} on ${appointmentToCancel.date} at ${appointmentToCancel.time} was cancelled.`,
+        category: 'Upcoming',
+        time: 'Just now',
+        link: '/dashboard/appointments',
+      })
+      setShowCancelModal(false)
+      setAppointmentToCancel(null)
+    }
   }
 
   const handleReschedule = (appointmentId) => {
-    // Find the appointment details
     const appointment = displayAppointments?.find(apt => apt.id === appointmentId)
     if (appointment) {
       setSelectedAppointment(appointment)
@@ -75,10 +115,19 @@ export default function AppointmentsPage() {
       [selectedAppointment.id]: { date: newDate, time: newTime }
     }))
     
+    addNotification({
+      type: 'appointment',
+      icon: '📅',
+      iconClass: 'purple',
+      title: 'Appointment Rescheduled',
+      description: `Your visit with ${selectedAppointment.doctorName} was rescheduled to ${newDate} at ${newTime}.`,
+      category: 'Upcoming',
+      time: 'Just now',
+      link: '/dashboard/appointments',
+    })
+    
     setRescheduling(false)
     setShowRescheduleModal(false)
-    
-    alert(`✅ Appointment rescheduled successfully!\n\nNew Date: ${newDate}\nNew Time: ${newTime}\n\nConfirmation email sent to your registered email address.`)
     
     // Reset form
     setSelectedAppointment(null)
@@ -86,8 +135,9 @@ export default function AppointmentsPage() {
     setNewTime('')
   }
 
-  // Show success message if redirected after booking
-  const successMessage = location.state?.message
+  // Show success message if redirected after booking or cancelling
+  const redirectSuccessMessage = location.state?.message
+  const activeSuccessMessage = cancellationSuccessMsg || redirectSuccessMessage
 
   return (
     <section aria-labelledby="appointments-heading">
@@ -115,10 +165,35 @@ export default function AppointmentsPage() {
         </div>
       </div>
 
-      {/* Success Message */}
-      {successMessage && (
-        <div className="success-banner" role="alert">
-          ✅ {successMessage}
+      {/* Success Banner */}
+      {activeSuccessMessage && (
+        <div className="success-banner" role="alert" style={{
+          background: '#dcfce7',
+          border: '1px solid #86efac',
+          color: '#166534',
+          padding: '0.85rem 1.25rem',
+          borderRadius: '10px',
+          marginBottom: '1.25rem',
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}>
+          <span>✅ {activeSuccessMessage}</span>
+          <button 
+            onClick={() => setCancellationSuccessMsg('')}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#166534',
+              fontWeight: 700,
+              fontSize: '1rem'
+            }}
+            aria-label="Dismiss message"
+          >
+            ✕
+          </button>
         </div>
       )}
 
@@ -185,6 +260,110 @@ export default function AppointmentsPage() {
           >
             Search Doctors
           </button>
+        </div>
+      )}
+
+      {/* Cancel Appointment Modal */}
+      {showCancelModal && appointmentToCancel && (
+        <div className="modal-overlay" onClick={() => {
+          setShowCancelModal(false)
+          setAppointmentToCancel(null)
+        }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Cancel Appointment</h2>
+              <button 
+                className="modal-close" 
+                onClick={() => {
+                  setShowCancelModal(false)
+                  setAppointmentToCancel(null)
+                }}
+                aria-label="Close modal"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div style={{
+                background: '#fef2f2',
+                border: '1px solid #fca5a5',
+                color: '#991b1b',
+                padding: '0.85rem 1rem',
+                borderRadius: '10px',
+                marginBottom: '1.25rem',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }} role="alert">
+                <span>⚠️</span>
+                <span>Are you sure you want to cancel this appointment?</span>
+              </div>
+
+              <div className="current-appointment-info">
+                <h3>Appointment Details</h3>
+                <div className="info-grid">
+                  <div className="info-item">
+                    <span className="info-icon">👨‍⚕️</span>
+                    <div>
+                      <p className="info-label">Doctor</p>
+                      <p className="info-value">{appointmentToCancel.doctorName}</p>
+                    </div>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-icon">📍</span>
+                    <div>
+                      <p className="info-label">Specialty</p>
+                      <p className="info-value">{appointmentToCancel.specialty}</p>
+                    </div>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-icon">📅</span>
+                    <div>
+                      <p className="info-label">Date</p>
+                      <p className="info-value">{appointmentToCancel.date}</p>
+                    </div>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-icon">🕐</span>
+                    <div>
+                      <p className="info-label">Time</p>
+                      <p className="info-value">{appointmentToCancel.time}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                className="btn-secondary"
+                onClick={() => {
+                  setShowCancelModal(false)
+                  setAppointmentToCancel(null)
+                }}
+              >
+                Keep Appointment
+              </button>
+              <button 
+                className="btn-danger"
+                onClick={handleConfirmCancel}
+                style={{
+                  background: '#ef4444',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '0.6rem 1.25rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                Cancel Appointment
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

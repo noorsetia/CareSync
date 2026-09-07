@@ -2,6 +2,7 @@ import { useState, useReducer, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
+import { useNotifications } from '../context/NotificationContext'
 import { fetchDoctorDetails, bookAppointment, searchDoctors } from '../api/mockApi'
 
 /**
@@ -53,6 +54,7 @@ export default function BookAppointmentPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { token } = useAuth()
+  const { addNotification } = useNotifications()
   const queryClient = useQueryClient()
   
   const [currentStep, setCurrentStep] = useState(1)
@@ -95,6 +97,17 @@ export default function BookAppointmentPage() {
     mutationFn: (bookingData) => bookAppointment({ token, ...bookingData }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['appointments'] })
+      const docName = selectedDoctor?.name || 'Healthcare Provider'
+      addNotification({
+        type: 'appointment',
+        icon: '📅',
+        iconClass: 'blue',
+        title: `Appointment Booked with ${docName}`,
+        description: `${formData.type} scheduled for ${formData.date} at ${formData.time}.`,
+        category: 'Upcoming',
+        time: 'Just now',
+        link: '/dashboard/appointments',
+      })
       navigate('/dashboard/appointments', { 
         state: { message: 'Appointment booked successfully!' } 
       })

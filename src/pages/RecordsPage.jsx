@@ -1,6 +1,7 @@
 import { useState, lazy, Suspense } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../context/useAuth'
+import { useNotifications } from '../context/NotificationContext'
 import { fetchMedicalRecords } from '../api/mockApi'
 
 // Lazy load the chart component for performance
@@ -17,6 +18,7 @@ const VitalsChart = lazy(() => import('../components/records/VitalsChart'))
  */
 export default function RecordsPage() {
   const { token } = useAuth()
+  const { addNotification } = useNotifications()
   const [category, setCategory] = useState('all')
   const [showChart, setShowChart] = useState(false)
   const [downloading, setDownloading] = useState(false)
@@ -73,6 +75,17 @@ This is a simulated download. In production, this would be a proper PDF with all
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
     
+    addNotification({
+      type: 'lab',
+      icon: '📄',
+      iconClass: 'green',
+      title: 'Full Record Export Downloaded',
+      description: 'Your complete medical record summary was downloaded.',
+      category: 'Results',
+      time: 'Just now',
+      link: '/dashboard/records',
+    })
+
     setDownloading(false)
   }
 
@@ -105,6 +118,17 @@ This is a simulated download. In production, this would be a secure, encrypted P
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
     
+    addNotification({
+      type: 'lab',
+      icon: '🧪',
+      iconClass: 'green',
+      title: `Record Downloaded: ${recordTitle}`,
+      description: `Report for ${recordDate} was downloaded to your device.`,
+      category: 'Results',
+      time: 'Just now',
+      link: '/dashboard/records',
+    })
+
     setDownloadingRecord(null)
   }
 
