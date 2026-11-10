@@ -38,7 +38,7 @@ const formatDateShort = (dateStr) => {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export default function Dashboard() {
+export default function Dashboard({ publicView = false }) {
   const navigate = useNavigate()
   const { token, user } = useAuth()
   const [showMessageModal, setShowMessageModal] = useState(false)
@@ -48,7 +48,7 @@ export default function Dashboard() {
   const { data, error, isLoading, isFetching } = useQuery({
     queryKey: ['patientData', user?.id],
     queryFn: () => mockApi.fetchPatientData({ token }),
-    enabled: !!token && !!user,
+    enabled: !publicView && !!token && !!user,
     retry: 1,
   })
 
@@ -61,7 +61,7 @@ export default function Dashboard() {
   const { data: appointments = [] } = useQuery({
     queryKey: ['appointments', { status: 'upcoming' }],
     queryFn: () => mockApi.fetchAppointments({ token, status: 'upcoming' }),
-    enabled: !!token,
+    enabled: !publicView && !!token,
   })
 
   const upcoming = [...appointments].sort((a, b) => new Date(a.date) - new Date(b.date))

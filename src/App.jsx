@@ -27,6 +27,17 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
+        {/* Public Dashboard - No Login Required */}
+        <Route
+          path="/public-dashboard"
+          element={<DashboardLayout publicView={true} />}
+        >
+          <Route
+            index
+            element={<DashboardPage publicView={true} />}
+          />
+        </Route>
+        
         {/* Protected Dashboard Routes with Sidebar Layout */}
         <Route
           path="/dashboard"
